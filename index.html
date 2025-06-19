@@ -1,134 +1,147 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
- <meta charset="UTF-8">
- <title>🧹 Bersihin Server Offline - Pterodactyl by RezzX</title>
- <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
- <style>
- body {
- background: #0f172a;
- color: #f1f5f9;
- font-family: 'Segoe UI', sans-serif;
- padding: 20px;
- }
- input, button {
- padding: 10px;
- margin: 5px 0;
- width: 100%;
- border-radius: 5px;
- border: none;
- }
- input {
- background: #1e293b;
- color: #fff;
- }
- button {
- background: #38bdf8;
- font-weight: bold;
- cursor: pointer;
- }
- button:hover {
- background: #0ea5e9;
- }
- .log {
- margin-top: 20px;
- background: #1e293b;
- padding: 10px;
- border-radius: 5px;
- max-height: 400px;
- overflow-y: auto;
- white-space: pre-wrap;
- }
- .done {
- text-align: center;
- font-size: 22px;
- font-weight: bold;
- background: linear-gradient(90deg, #22c55e, #facc15, #38bdf8, #f43f5e);
- -webkit-background-clip: text;
- -webkit-text-fill-color: transparent;
- animation: blink 1s infinite alternate;
- }
- @keyframes blink {
- 0% { opacity: 1; }
- 100% { opacity: 0.5; }
- }
- </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Pterodactyl Auto Cleaner - RezzX Panel</title>
+  <link rel="icon" href="https://i.ibb.co/wgNSNMc/rzxbanner.jpg">
+  <style>
+    body {
+      background: #0f172a;
+      color: #f1f5f9;
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 30px;
+    }
+
+    h1 {
+      text-align: center;
+      color: #38bdf8;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: auto;
+      background: #1e293b;
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 0 10px #38bdf8;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      background: #0f172a;
+      border: 2px solid #38bdf8;
+      color: #f1f5f9;
+      border-radius: 10px;
+      font-size: 14px;
+    }
+
+    button {
+      width: 100%;
+      background: #38bdf8;
+      color: #0f172a;
+      border: none;
+      padding: 12px;
+      font-weight: bold;
+      font-size: 16px;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #0ea5e9;
+    }
+
+    .log {
+      margin-top: 20px;
+      background: #0f172a;
+      border: 1px solid #334155;
+      padding: 15px;
+      border-radius: 10px;
+      max-height: 300px;
+      overflow-y: auto;
+      white-space: pre-line;
+    }
+
+    .success { color: #22c55e; }
+    .fail { color: #ef4444; }
+    .info { color: #facc15; }
+
+    .rainbow {
+      font-weight: bold;
+      background: linear-gradient(to right, red, orange, yellow, green, cyan, blue, violet);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-align: center;
+      margin-top: 20px;
+      font-size: 20px;
+    }
+  </style>
 </head>
 <body>
+  <h1>🧹 Pterodactyl Auto Cleaner - RezzX Panel</h1>
 
-<h2>🧹 Pterodactyl Server Cleaner</h2>
-<input id="domain" placeholder="🌐 Domain Panel (https://panel.domain.com)">
-<input id="plta" placeholder="🔑 API Admin">
-<input id="pltc" placeholder="🔐 API Client">
-<button onclick="gas()">🚀 Gas!</button>
+  <div class="container">
+    <input type="text" id="plta" placeholder="🔑 API KEY Application (Admin)">
+    <input type="text" id="pltc" placeholder="🔐 API KEY Client (Owner)">
+    <input type="text" id="domain" placeholder="🌐 Domain Panel (https://yourpanel.com)">
+    <button onclick="hapusServer()">🚀 Gas Bersihin Server Offline</button>
+    <div id="log" class="log"></div>
+    <div id="done" class="rainbow"></div>
+  </div>
 
-<div class="log" id="log"></div>
-<div class="done" id="done"></div>
+  <script>
+    async function hapusServer() {
+      const plta = document.getElementById('plta').value.trim();
+      const pltc = document.getElementById('pltc').value.trim();
+      const domain = document.getElementById('domain').value.trim();
+      const log = document.getElementById('log');
+      const done = document.getElementById('done');
+      log.innerHTML = '';
+      done.innerHTML = '';
 
-<script>
- async function gas() {
- const domain = document.getElementById("domain").value.trim();
- const plta = document.getElementById("plta").value.trim();
- const pltc = document.getElementById("pltc").value.trim();
- const log = document.getElementById("log");
- const done = document.getElementById("done");
+      if (!plta || !pltc || !domain) {
+        log.innerHTML = `<span class="fail">❌ Semua field wajib diisi.</span>`;
+        return;
+      }
 
- log.innerText = '';
- done.innerText = '';
+      log.innerHTML = `<span class="info">⏳ Memulai proses pembersihan server...</span>\n`;
 
- if (!domain || !plta || !pltc) {
- log.innerText = "❌ Semua input wajib diisi.";
- return;
- }
+      try {
+        const res = await fetch("https://candid-trifle-a2dbc3.netlify.app/api/deleteOffline", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ plta, pltc, domain })
+        });
 
- try {
- const res = await axios.get(`${domain}/api/application/servers`, {
- headers: {
- "Authorization": `Bearer ${plta}`,
- "Accept": "application/json"
- }
- });
+        const data = await res.json();
 
- const servers = res.data.data;
- let success = 0;
+        if (data.error) {
+          log.innerHTML += `\n<span class="fail">❌ Gagal: ${data.error}</span>`;
+          return;
+        }
 
- for (const server of servers) {
- const sid = server.attributes.id;
- const uuid = server.attributes.uuid;
- const name = server.attributes.name || "-";
- const user = server.attributes.user;
+        data.log.forEach(l => {
+          if (l.includes('✅')) {
+            log.innerHTML += `<span class="success">${l}</span>\n`;
+          } else if (l.includes('❌')) {
+            log.innerHTML += `<span class="fail">${l}</span>\n`;
+          } else {
+            log.innerHTML += `<span class="info">${l}</span>\n`;
+          }
+        });
 
- const stat = await axios.get(`${domain}/api/client/servers/${uuid}/resources`, {
- headers: { "Authorization": `Bearer ${pltc}` }
- });
-
- if (stat.data.attributes.current_state === "offline") {
- await axios.delete(`${domain}/api/application/servers/${sid}`, {
- headers: {
- "Authorization": `Bearer ${plta}`
- }
- });
-
- log.innerText += `✅ Server ID ${sid} berhasil dihapus\n📧 User ID: ${user}\n🔖 Nama: ${name}\n\n`;
- success++;
- } else {
- log.innerText += `⏩ Server ID ${sid} aktif, dilewati...\n`;
- }
- }
-
- done.innerText = `🔥🔥 SELESAI - Total berhasil: ${success} 🔥🔥`;
-
- setTimeout(() => {
- document.getElementById("domain").value = '';
- document.getElementById("plta").value = '';
- document.getElementById("pltc").value = '';
- }, 3000);
-
- } catch (err) {
- log.innerText = `❌ Error: ${err.message}`;
- }
- }
-</script>
-
+        done.innerHTML = `🎉 SEMUA PROSES SELESAI 🎉`;
+        document.getElementById('plta').value = '';
+        document.getElementById('pltc').value = '';
+        document.getElementById('domain').value = '';
+      } catch (e) {
+        log.innerHTML += `\n<span class="fail">❌ Error: ${e.message}</span>`;
+      }
+    }
+  </script>
 </body>
 </html>
