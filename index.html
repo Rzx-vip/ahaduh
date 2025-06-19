@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Pterodactyl Auto Cleaner - RezzX Panel</title>
-  <link rel="icon" href="https://i.ibb.co/wgNSNMc/rzxbanner.jpg">
   <style>
     body {
       background: #0f172a;
@@ -117,10 +116,16 @@
           body: JSON.stringify({ plta, pltc, domain })
         });
 
-        const data = await res.json();
+        let data;
+        try {
+          data = await res.json();
+        } catch {
+          const raw = await res.text();
+          throw new Error(`Gagal parsing response JSON:\n${raw}`);
+        }
 
-        if (data.error) {
-          log.innerHTML += `\n<span class="fail">❌ Gagal: ${data.error}</span>`;
+        if (!data || data.error) {
+          log.innerHTML += `\n<span class="fail">❌ Gagal: ${data?.error || 'Response kosong/tidak valid'}</span>`;
           return;
         }
 
