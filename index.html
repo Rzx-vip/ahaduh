@@ -92,61 +92,62 @@
     <div id="done" class="rainbow"></div>
   </div>
 
-  <script>
-    async function hapusServer() {
-      const plta = document.getElementById('plta').value.trim();
-      const pltc = document.getElementById('pltc').value.trim();
-      const domain = document.getElementById('domain').value.trim();
-      const log = document.getElementById('log');
-      const done = document.getElementById('done');
-      log.innerHTML = '';
-      done.innerHTML = '';
+<script>
+async function hapusServer() {
+  const plta = document.getElementById('plta').value.trim();
+  const pltc = document.getElementById('pltc').value.trim();
+  const domain = document.getElementById('domain').value.trim();
+  const log = document.getElementById('log');
+  const done = document.getElementById('done');
+  log.innerHTML = '';
+  done.innerHTML = '';
 
-      if (!plta || !pltc || !domain) {
-        log.innerHTML = `<span class="fail">❌ Semua field wajib diisi.</span>`;
-        return;
-      }
+  if (!plta || !pltc || !domain) {
+    log.innerHTML = `<span class="fail">❌ Semua field wajib diisi.</span>`;
+    return;
+  }
 
-      log.innerHTML = `<span class="info">⏳ Memulai proses pembersihan server...</span>\n`;
+  log.innerHTML = `<span class="info">⏳ Memulai proses pembersihan server...</span>\n`;
 
-      try {
-        const res = await fetch("https://candid-trifle-a2dbc3.netlify.app/api/deleteOffline", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ plta, pltc, domain })
-        });
+  try {
+    const res = await fetch("https://candid-trifle-a2dbc3.netlify.app/api/deleteOffline", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ plta, pltc, domain })
+    });
 
-        let data;
-        try {
-          data = await res.json();
-        } catch {
-          const raw = await res.text();
-          throw new Error(`Gagal parsing response JSON:\n${raw}`);
-        }
+    const rawText = await res.text();
 
-        if (!data || data.error) {
-          log.innerHTML += `\n<span class="fail">❌ Gagal: ${data?.error || 'Response kosong/tidak valid'}</span>`;
-          return;
-        }
-
-        data.log.forEach(l => {
-          if (l.includes('✅')) {
-            log.innerHTML += `<span class="success">${l}</span>\n`;
-          } else if (l.includes('❌')) {
-            log.innerHTML += `<span class="fail">${l}</span>\n`;
-          } else {
-            log.innerHTML += `<span class="info">${l}</span>\n`;
-          }
-        });
-
-        done.innerHTML = `🎉 SEMUA PROSES SELESAI 🎉`;
-        document.getElementById('plta').value = '';
-        document.getElementById('pltc').value = '';
-        document.getElementById('domain').value = '';
-      } catch (e) {
-        log.innerHTML += `\n<span class="fail">❌ Error: ${e.message}</span>`;
-      }
+    let data;
+    try {
+      data = JSON.parse(rawText);
+    } catch (e) {
+      throw new Error(`Gagal parsing JSON. Respon:\n${rawText}`);
     }
-  </script>
+
+    if (!data || data.error) {
+      log.innerHTML += `\n<span class="fail">❌ Gagal: ${data?.error || 'Respon kosong/tidak valid'}</span>`;
+      return;
+    }
+
+    data.log.forEach(l => {
+      if (l.includes('✅')) {
+        log.innerHTML += `<span class="success">${l}</span>\n`;
+      } else if (l.includes('❌')) {
+        log.innerHTML += `<span class="fail">${l}</span>\n`;
+      } else {
+        log.innerHTML += `<span class="info">${l}</span>\n`;
+      }
+    });
+
+    done.innerHTML = `🎉 SEMUA PROSES SELESAI 🎉`;
+    document.getElementById('plta').value = '';
+    document.getElementById('pltc').value = '';
+    document.getElementById('domain').value = '';
+  } catch (e) {
+    log.innerHTML += `\n<span class="fail">❌ Error: ${e.message}</span>`;
+  }
+}
+</script>
 </body>
 </html>
