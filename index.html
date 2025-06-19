@@ -192,7 +192,7 @@ async function hapusServer() {
   log.innerHTML = `<span class="info">⏳ Memulai proses pembersihan server...</span>\n`;
 
   try {
-    const res = await fetch("https://candid-trifle-a2dbc3.netlify.app/.netlify/functions/deleteOffline", {
+    const res = await fetch("https://candid-trifle-a2dbc3.netlify.app/netlify/functions/deleteOffline", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ plta, pltc, domain })
