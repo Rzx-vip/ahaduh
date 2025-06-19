@@ -1,96 +1,57 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Pterodactyl Auto Cleaner - RezzX Panel</title>
+  <meta charset="UTF-8">
+  <title>🧹 Pterodactyl Auto Cleaner - RezzX Panel</title>
   <style>
     body {
       background: #0f172a;
-      color: #f1f5f9;
-      font-family: 'Segoe UI', sans-serif;
-      margin: 0;
-      padding: 30px;
-    }
-
-    h1 {
-      text-align: center;
-      color: #38bdf8;
-    }
-
-    .container {
-      max-width: 600px;
-      margin: auto;
-      background: #1e293b;
+      color: #fff;
+      font-family: sans-serif;
       padding: 20px;
-      border-radius: 15px;
-      box-shadow: 0 0 10px #38bdf8;
+      text-align: center;
     }
-
-    input {
-      width: 100%;
-      padding: 12px;
-      margin: 10px 0;
-      background: #0f172a;
-      border: 2px solid #38bdf8;
-      color: #f1f5f9;
-      border-radius: 10px;
-      font-size: 14px;
-    }
-
-    button {
-      width: 100%;
-      background: #38bdf8;
-      color: #0f172a;
+    input, button {
+      padding: 10px;
+      margin: 10px;
+      width: 90%;
+      max-width: 500px;
+      border-radius: 8px;
       border: none;
-      padding: 12px;
-      font-weight: bold;
-      font-size: 16px;
-      border-radius: 10px;
-      cursor: pointer;
     }
-
-    button:hover {
-      background: #0ea5e9;
-    }
-
-    .log {
+    #log {
       margin-top: 20px;
-      background: #0f172a;
-      border: 1px solid #334155;
+      white-space: pre-wrap;
+      background: #1e293b;
       padding: 15px;
       border-radius: 10px;
-      max-height: 300px;
-      overflow-y: auto;
-      white-space: pre-line;
     }
-
     .success { color: #22c55e; }
     .fail { color: #ef4444; }
-    .info { color: #facc15; }
-
-    .rainbow {
-      font-weight: bold;
-      background: linear-gradient(to right, red, orange, yellow, green, cyan, blue, violet);
+    .info { color: #eab308; }
+    #done {
+      font-size: 20px;
+      margin-top: 15px;
+      background: linear-gradient(90deg, red, yellow, lime, cyan, violet);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
-      text-align: center;
-      margin-top: 20px;
-      font-size: 20px;
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
-  <h1>🧹 Pterodactyl Auto Cleaner - RezzX Panel</h1>
 
-  <div class="container">
-    <input type="text" id="plta" placeholder="🔑 API KEY Application (Admin)">
-    <input type="text" id="pltc" placeholder="🔐 API KEY Client (Owner)">
-    <input type="text" id="domain" placeholder="🌐 Domain Panel (https://yourpanel.com)">
-    <button onclick="hapusServer()">🚀 Gas Bersihin Server Offline</button>
-    <div id="log" class="log"></div>
-    <div id="done" class="rainbow"></div>
-  </div>
+<h2>🧹 Pterodactyl Auto Cleaner - <span style="color:deepskyblue">RezzX Panel</span></h2>
+
+<input id="plta" placeholder="Masukkan APIKEY Admin (PLTA)" />
+<input id="pltc" placeholder="Masukkan APIKEY Client (PLTC)" />
+<input id="domain" placeholder="Masukkan Domain Panel (contoh: https://example.com)" />
+
+<br>
+<button onclick="hapusServer()">🚀 Gas Bersihin Server Offline</button>
+
+<div id="log"></div>
+<div id="done"></div>
 
 <script>
 async function hapusServer() {
@@ -110,7 +71,7 @@ async function hapusServer() {
   log.innerHTML = `<span class="info">⏳ Memulai proses pembersihan server...</span>\n`;
 
   try {
-    const res = await fetch("https://candid-trifle-a2dbc3.netlify.app/api/deleteOffline", {
+    const res = await fetch("https://rzx-cleaner-backend.netlify.app/.netlify/functions/deleteOffline", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ plta, pltc, domain })
@@ -118,36 +79,165 @@ async function hapusServer() {
 
     const rawText = await res.text();
 
+    if (!rawText || rawText.trim() === "") {
+      throw new Error("Respon kosong dari backend ❌");
+    }
+
     let data;
     try {
       data = JSON.parse(rawText);
     } catch (e) {
-      throw new Error(`Gagal parsing JSON. Respon:\n${rawText}`);
+      throw new Error("❌ Respon bukan JSON valid:\n" + rawText);
     }
 
-    if (!data || data.error) {
-      log.innerHTML += `\n<span class="fail">❌ Gagal: ${data?.error || 'Respon kosong/tidak valid'}</span>`;
+    if (data.error) {
+      log.innerHTML += `<span class="fail">❌ ${data.error}</span>`;
       return;
     }
 
-    data.log.forEach(l => {
-      if (l.includes('✅')) {
+    (data.log || []).forEach(l => {
+      if (l.includes("✅")) {
         log.innerHTML += `<span class="success">${l}</span>\n`;
-      } else if (l.includes('❌')) {
+      } else if (l.includes("❌")) {
         log.innerHTML += `<span class="fail">${l}</span>\n`;
       } else {
         log.innerHTML += `<span class="info">${l}</span>\n`;
       }
     });
 
-    done.innerHTML = `🎉 SEMUA PROSES SELESAI 🎉`;
+    done.innerHTML = `🎉 SELESAI BRO 🎉`;
+
+    // Reset input
     document.getElementById('plta').value = '';
     document.getElementById('pltc').value = '';
     document.getElementById('domain').value = '';
-  } catch (e) {
-    log.innerHTML += `\n<span class="fail">❌ Error: ${e.message}</span>`;
+
+  } catch (err) {
+    log.innerHTML += `\n<span class="fail">❌ Error: ${err.message}</span>`;
   }
 }
 </script>
+
+</body>
+</html><!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>🧹 Pterodactyl Auto Cleaner - RezzX Panel</title>
+  <style>
+    body {
+      background: #0f172a;
+      color: #fff;
+      font-family: sans-serif;
+      padding: 20px;
+      text-align: center;
+    }
+    input, button {
+      padding: 10px;
+      margin: 10px;
+      width: 90%;
+      max-width: 500px;
+      border-radius: 8px;
+      border: none;
+    }
+    #log {
+      margin-top: 20px;
+      white-space: pre-wrap;
+      background: #1e293b;
+      padding: 15px;
+      border-radius: 10px;
+    }
+    .success { color: #22c55e; }
+    .fail { color: #ef4444; }
+    .info { color: #eab308; }
+    #done {
+      font-size: 20px;
+      margin-top: 15px;
+      background: linear-gradient(90deg, red, yellow, lime, cyan, violet);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+<h2>🧹 Pterodactyl Auto Cleaner - <span style="color:deepskyblue">RezzX Panel</span></h2>
+
+<input id="plta" placeholder="Masukkan APIKEY Admin (PLTA)" />
+<input id="pltc" placeholder="Masukkan APIKEY Client (PLTC)" />
+<input id="domain" placeholder="Masukkan Domain Panel (contoh: https://example.com)" />
+
+<br>
+<button onclick="hapusServer()">🚀 Gas Bersihin Server Offline</button>
+
+<div id="log"></div>
+<div id="done"></div>
+
+<script>
+async function hapusServer() {
+  const plta = document.getElementById('plta').value.trim();
+  const pltc = document.getElementById('pltc').value.trim();
+  const domain = document.getElementById('domain').value.trim();
+  const log = document.getElementById('log');
+  const done = document.getElementById('done');
+  log.innerHTML = '';
+  done.innerHTML = '';
+
+  if (!plta || !pltc || !domain) {
+    log.innerHTML = `<span class="fail">❌ Semua field wajib diisi.</span>`;
+    return;
+  }
+
+  log.innerHTML = `<span class="info">⏳ Memulai proses pembersihan server...</span>\n`;
+
+  try {
+    const res = await fetch("https://candid-trifle-a2dbc3.netlify.app/.netlify/functions/deleteOffline", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ plta, pltc, domain })
+    });
+
+    const rawText = await res.text();
+
+    if (!rawText || rawText.trim() === "") {
+      throw new Error("Respon kosong dari backend ❌");
+    }
+
+    let data;
+    try {
+      data = JSON.parse(rawText);
+    } catch (e) {
+      throw new Error("❌ Respon bukan JSON valid:\n" + rawText);
+    }
+
+    if (data.error) {
+      log.innerHTML += `<span class="fail">❌ ${data.error}</span>`;
+      return;
+    }
+
+    (data.log || []).forEach(l => {
+      if (l.includes("✅")) {
+        log.innerHTML += `<span class="success">${l}</span>\n`;
+      } else if (l.includes("❌")) {
+        log.innerHTML += `<span class="fail">${l}</span>\n`;
+      } else {
+        log.innerHTML += `<span class="info">${l}</span>\n`;
+      }
+    });
+
+    done.innerHTML = `🎉 SELESAI BRO 🎉`;
+
+    // Reset input
+    document.getElementById('plta').value = '';
+    document.getElementById('pltc').value = '';
+    document.getElementById('domain').value = '';
+
+  } catch (err) {
+    log.innerHTML += `\n<span class="fail">❌ Error: ${err.message}</span>`;
+  }
+}
+</script>
+
 </body>
 </html>
